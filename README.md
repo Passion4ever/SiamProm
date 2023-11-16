@@ -1,4 +1,4 @@
-# SiamProm
+# SiamProm (Under Preparation)
 
 Recognition of Cyanobacteria Promoters via Siamese Network-based Contrastive Learning under Novel Non-promoter Generation
 
@@ -7,10 +7,6 @@ Recognition of Cyanobacteria Promoters via Siamese Network-based Contrastive Lea
 ![SiamProm](./figs/fig2.webp)
 
 
+## Dependency
 
 
-
-
-
-
-## License
