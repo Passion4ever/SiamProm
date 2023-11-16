@@ -1,0 +1,43 @@
+arch:
+  _target_: srcs.model.siamprom.SiamProm
+  src_vocab_size: ${power:${kmer}}
+  d_model: ${d_model}
+  d_k: ${kv}
+  d_v: ${kv}
+  n_heads: ${n_heads}
+  d_ff: ${d_ff}
+  d_hidden: ${d_hidden}
+  n_layers: ${n_layers}
+  shape_1: ${shape_1}
+  shape_2: ${shape_2}
+  shape_3: ${shape_3}
+
+loss:
+  ce_loss: 
+    _target_: srcs.model.loss.CrossEntropyLoss
+  ct_loss: 
+    _target_: srcs.model.loss.ContrastiveLoss
+    margin: ${margin}
+
+optim:
+  _target_: torch.optim.Adam
+  lr: ${learning_rate}
+  betas: [0.9, 0.99]
+  weight_decay: 0
+  amsgrad: true
+
+lr_scheduler:
+  _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+  mode: max
+  factor: 0.5
+  patience: 6
+  verbose: true
+  threshold: 0.0001
+  threshold_mode: abs
+  cooldown: 5
+  min_lr: 0
+  eps: 1.0e-8
+
+
+
+

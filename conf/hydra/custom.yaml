@@ -1,0 +1,35 @@
+run:
+  dir: ./outputs/${exper_name}/${now:%y-%m-%d-%a_%H:%M:%S}
+
+job:
+  chdir: true
+
+job_logging:
+  version: 1
+  formatters:
+      simple:
+          format: '%(message)s'
+      detailed:
+          format: "%(name)s%(asctime)s %(levelname)8s ---> %(message)s"
+          datefmt: "%Y-%m-%d %H:%M:%S"
+  handlers:
+      console:
+          class: logging.StreamHandler
+          level: INFO
+          stream: ext://sys.stdout
+          formatter: simple
+
+      file:
+          class: logging.handlers.RotatingFileHandler
+          level: DEBUG
+          maxBytes: 10485760
+          backupCount: 20
+          encoding: utf8
+          # relative to the job log directory
+          filename: ${hydra:runtime.output_dir}/${hydra:job.name}.log
+          formatter: detailed
+  root:
+      level: DEBUG
+      handlers: [console, file]
+      propagate: no
+  disable_existing_loggers: False
