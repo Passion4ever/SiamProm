@@ -31,7 +31,7 @@ conda activate SiamProm
 
 ## Usage
 
-```python
+```bash
 python train.py sampling=phantom
 ```
 
