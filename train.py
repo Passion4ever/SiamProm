@@ -4,7 +4,7 @@ import warnings
 import hydra
 import torch
 from omegaconf import OmegaConf
-from srcs.trianer import Trainer
+from srcs.trainer import Trainer
 from srcs.utils import instantiate, set_global_random_seed
 
 OmegaConf.register_new_resolver("power", lambda x: 4**x)
