@@ -1,6 +1,6 @@
-# SiamProm (Under Preparation)
+# SiamProm: a framework for cyanobacterial promoter identification
 
-Recognition of Cyanobacteria Promoters via Siamese Network-based Contrastive Learning under Novel Non-promoter Generation
+SiamProm originated from the paper **Recognition of Cyanobacteria Promoters via Siamese Network-based Contrastive Learning under Novel Non-promoter Generation**.
 
 ## The architecture of SiamProm
 
@@ -11,14 +11,13 @@ Recognition of Cyanobacteria Promoters via Siamese Network-based Contrastive Lea
 
 | Main Package 	| Version 	|
 | ------------	| -------:	|
-| Python       	| 3.9.16  	|
-| Pytorch      	| 1.12.1  	|
-| CUDA         	| 11.7    	|
-| cuDNN         | 8.5.0    	|
-| Scikit-learn  | 1.2.2   	|
-| Pandas      	| 1.5.3   	|
+| Python       	| 3.9.18  	|
+| Pytorch      	| 1.13.1  	|
+| CUDA         	| 11.6.1   	|
+| Scikit-learn  | 1.3.2   	|
+| Pandas      	| 2.1.4   	|
 | Hydra        	| 1.3.2   	|
-| Pyyaml      	| 6.0   	|
+| Pyyaml      	| 6.0.1   	|
 
 Build your environment manually or through a yaml file.
 
