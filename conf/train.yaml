@@ -1,0 +1,34 @@
+exper_name: SiamProm
+exper_info: null
+save_dir: ckpt/
+resume: 
+sampling: phantom
+device: 3
+seed: 42
+
+
+trainer: 
+    epochs: ${epochs}
+    monitor_metric: mcc
+    early_stop: 
+        mode: max
+        patience: 30
+        delta: 0.0005
+    save_period: 10
+
+metrics:
+    - _target_: srcs.model.metrics.Acc
+    - _target_: srcs.model.metrics.Sn
+    - _target_: srcs.model.metrics.Sp
+    - _target_: srcs.model.metrics.Mcc
+
+defaults:
+    - _self_
+    - hparams: hp
+    - data: train_data
+    - model: siamprom
+    - hydra: custom
+    - override hydra/launcher: custom
+    - override hydra/sweeper: custom
+    
+

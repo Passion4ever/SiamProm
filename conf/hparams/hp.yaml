@@ -1,0 +1,18 @@
+# @package _global_
+
+# Different models require different hyperparameters (Phantom Sampling as an example)
+epochs: 200
+kmer: 3
+batch_size: 256
+learning_rate: 2.2461878598079345e-05
+d_model: 1024
+kv: 64
+n_heads: 4
+d_ff: 1024
+d_hidden: 32
+n_layers: 2
+shape_1: 512
+shape_2: 128
+shape_3: 32
+margin: 2.0
+

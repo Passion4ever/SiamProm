@@ -22,7 +22,6 @@ def main(cfg):
     dataloaders = instantiate(cfg.data, is_func=True)()
 
     # 3. model
-
     model = instantiate(cfg.model.arch).to(device)
     # logger.info(model)
 
