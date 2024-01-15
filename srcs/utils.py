@@ -10,8 +10,11 @@ from typing import Dict, Mapping
 import hydra
 import numpy as np
 import pandas as pd
-import torch
 import yaml
+import mindspore as ms
+import mindspore.nn as nn
+import mindspore.ops as ops
+from mindspore import Tensor, context
 
 
 def instantiate(config, *args, is_func=False, **kwargs):
@@ -97,9 +100,6 @@ def read_fasta(file_path):
 def seq2vec(seq_dict, k, seq_type, max_len=None):
     from functools import reduce
 
-    import torch
-    import torch.nn.functional as F
-
     assert k >= 1, " k must be an integer greater than zero. "
     assert max_len is None or (
         isinstance(max_len, int) and max_len > 0
@@ -127,14 +127,15 @@ def seq2vec(seq_dict, k, seq_type, max_len=None):
         integer = [kmer_map[seq[i : i + k]] for i in range(len(seq) - k + 1)]
         kmer_lis.append(integer)
 
-    kmer_lis = torch.tensor(kmer_lis)
-    label_lis = torch.tensor(label_lis)
+    kmer_lis = np.array(kmer_lis, int)
+    label_lis = np.array(label_lis, int)
 
     if k == 1:
-        kmer_lis = F.one_hot(kmer_lis).float()
+        depth = len(alphabet[seq_type])
+        kmer_lis = np.eye(depth)[kmer_lis]
+  
 
     return kmer_lis, label_lis, seq_lis
-
 
 
 def set_global_random_seed(seed):
@@ -150,10 +151,7 @@ def set_global_random_seed(seed):
     random.seed(seed)
     os.environ["PYTHONHASHSEED"] = str(seed)
     np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    # torch.backends.cudnn.deterministic = True  # May slow down the speed of code running
-    torch.backends.cudnn.benchmark = False
+    ms.set_seed(seed)
 
 
 class EarlyStopping:
@@ -178,7 +176,7 @@ class EarlyStopping:
         self.best_score = float("inf") if mode == "min" else float("-inf")
         self.early_stop = False
 
-    def __call__(self, metric: float) -> tuple[bool, float, int]:
+    def __call__(self, metric: float):
         """Earlystop call"""
 
         improved = (self.mode == "min" and metric < self.best_score - self.delta) or (

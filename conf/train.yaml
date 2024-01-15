@@ -3,7 +3,7 @@ exper_info: null
 save_dir: ckpt/
 resume: 
 sampling: phantom
-device: 3
+device: GPU  # must be one of ['CPU', 'GPU', 'Ascend', 'Davinci']
 seed: 42
 
 
@@ -28,7 +28,7 @@ defaults:
     - data: train_data
     - model: siamprom
     - hydra: custom
-    - override hydra/launcher: custom
-    - override hydra/sweeper: custom
+    # - override hydra/launcher: custom
+    # - override hydra/sweeper: custom
     
 

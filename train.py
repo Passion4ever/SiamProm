@@ -2,7 +2,7 @@ import logging
 import warnings
 
 import hydra
-import torch
+import mindspore as ms
 from omegaconf import OmegaConf
 from srcs.trainer import Trainer
 from srcs.utils import instantiate, set_global_random_seed
@@ -16,13 +16,14 @@ logger = logging.getLogger("train")
 def main(cfg):
     warnings.filterwarnings("ignore")
     set_global_random_seed(cfg.seed)
-    device = torch.device(f"cuda:{str(cfg.device)}")
+    ms.set_context(device_target=cfg.device)
+    # device = torch.device(f"cuda:{str(cfg.device)}")
 
     # 2. dataloader
     dataloaders = instantiate(cfg.data, is_func=True)()
 
     # 3. model
-    model = instantiate(cfg.model.arch).to(device)
+    model = instantiate(cfg.model.arch)
     # logger.info(model)
 
     # 4. loss
@@ -31,10 +32,9 @@ def main(cfg):
 
     # 5. metrics
     metrics = [instantiate(met, is_func=True) for met in cfg["metrics"]]
-    trainable_params = filter(lambda p: p.requires_grad, model.parameters())
 
     # 6. optim
-    optimizer = instantiate(cfg.model.optim, trainable_params)
+    optimizer = instantiate(cfg.model.optim, model.trainable_params())
 
     # 7. lr_scheduler
     lr_scheduler = instantiate(cfg.model.lr_scheduler, optimizer)
@@ -46,14 +46,12 @@ def main(cfg):
         optimizer,
         metrics,
         config=cfg,
-        device=device,
         lr_schduler=lr_scheduler,
     )
-    best_mcc = trainer.train(
-        train_loader=dataloaders[2], val_loader=dataloaders[:2], log_train_metrics=False
-    )
 
-    return best_mcc
+
+    trainer.train(train_loader=dataloaders[2], val_loader=dataloaders[:2])
+
 
 
 if __name__ == "__main__":

@@ -12,6 +12,7 @@ arch:
   shape_2: ${shape_2}
   shape_3: ${shape_3}
 
+
 loss:
   ce_loss: 
     _target_: srcs.model.loss.CrossEntropyLoss
@@ -20,18 +21,17 @@ loss:
     margin: ${margin}
 
 optim:
-  _target_: torch.optim.Adam
+  _target_: mindspore.experimental.optim.Adam
   lr: ${learning_rate}
   betas: [0.9, 0.99]
-  weight_decay: 0
+  weight_decay: 0.0
   amsgrad: true
 
 lr_scheduler:
-  _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+  _target_: mindspore.experimental.optim.lr_scheduler.ReduceLROnPlateau
   mode: max
   factor: 0.5
   patience: 6
-  verbose: true
   threshold: 0.0001
   threshold_mode: abs
   cooldown: 5
