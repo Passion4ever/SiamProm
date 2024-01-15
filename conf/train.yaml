@@ -28,7 +28,5 @@ defaults:
     - data: train_data
     - model: siamprom
     - hydra: custom
-    # - override hydra/launcher: custom
-    # - override hydra/sweeper: custom
     
 

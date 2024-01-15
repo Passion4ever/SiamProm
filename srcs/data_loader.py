@@ -78,17 +78,3 @@ def get_dataloaders(data_dir, k, max_len, seq_type, val_size, batch_size, num_pa
     siamese_valid_loader = siamese_valid_set.batch(batch_size)
 
     return train_loader, valid_loader, siamese_train_loader, siamese_valid_loader
-
-    # return siamese_train_loader, siamese_valid_loader
-
-
-
-
-
-# def get_test_loader(data_dir, k, max_len, seq_type, batch_size, **kwargs): 
-#     seq_dict = read_fasta(data_dir)
-#     seq_arr, labels, _ = seq2vec(seq_dict, k=k, seq_type=seq_type, max_len=max_len)
-#     dataset = ElasticDataSet(seq_arr, labels)
-#     test_loader = DataLoader(dataset, batch_size=batch_size, **kwargs)
-
-#     return test_loader
