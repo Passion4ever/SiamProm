@@ -131,13 +131,16 @@ def main():
     parser.add_argument('--fasta', type=str, required=True, help='Input FASTA file')
     parser.add_argument('--checkpoint', type=str, required=True, help='Model checkpoint path')
     parser.add_argument('--output', type=str, required=True, help='Output CSV path')
-    parser.add_argument('--device', type=int, default=0, help='GPU device index (default: 0)')
+    parser.add_argument('--device', type=str, default='0', help='Device: "cpu" or GPU index (default: 0)')
     parser.add_argument('--batch-size', type=int, default=256, help='Batch size (default: 256)')
     parser.add_argument('--threshold', type=float, default=0.5, help='Classification threshold (default: 0.5)')
 
     args = parser.parse_args()
 
-    device = torch.device(f'cuda:{args.device}' if torch.cuda.is_available() else 'cpu')
+    if args.device.lower() == 'cpu':
+        device = torch.device('cpu')
+    else:
+        device = torch.device(f'cuda:{args.device}' if torch.cuda.is_available() else 'cpu')
 
     print(f"Loading model: {args.checkpoint}")
     model = load_model(args.checkpoint, device)
