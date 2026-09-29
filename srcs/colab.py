@@ -252,13 +252,12 @@ def run_prediction(names, seqs, models, device, batch_size=1024, thresholds=None
 # ==================== Examples and self-check ====================
 
 def load_example(n=10):
-    """First n promoters and first n real non-promoters shipped in data/."""
-    names, seqs = [], []
-    for fname in ("7120_cdhit.fasta", "7120_pseudo.fasta"):
-        ns, ss = read_fasta(ROOT / "data" / fname)
-        names += ns[:n]
-        seqs += ss[:n]
-    return names, seqs
+    """First n promoters plus first n randomly generated non-promoters shipped in data/."""
+    names, seqs = read_fasta(ROOT / "data" / "7120_cdhit.fasta")
+    names, seqs = names[:n], seqs[:n]
+    neg_names, neg_seqs = read_fasta(ROOT / "data" / "full_random_data.fasta")
+    negatives = [(a, b) for a, b in zip(neg_names, neg_seqs) if "|non_promoter|" in a][:n]
+    return names + [a for a, _ in negatives], seqs + [b for _, b in negatives]
 
 
 def self_check(entry, device):
