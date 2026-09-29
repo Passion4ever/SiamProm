@@ -251,13 +251,27 @@ def run_prediction(names, seqs, models, device, batch_size=1024, thresholds=None
 
 # ==================== Examples and uploads ====================
 
-def load_example(n=10):
-    """First n promoters plus first n randomly generated non-promoters shipped in data/."""
-    names, seqs = read_fasta(ROOT / "data" / "7120_cdhit.fasta")
-    names, seqs = names[:n], seqs[:n]
+def load_example(n=10, include_invalid=True):
+    """n promoters plus n randomly generated non-promoters from data/, named seqNN|label.
+
+    With include_invalid, three deliberately broken sequences follow (too short, too long,
+    contains N) so the notebook can show how skipped sequences are reported.
+    """
+    _, promoters = read_fasta(ROOT / "data" / "7120_cdhit.fasta")
     neg_names, neg_seqs = read_fasta(ROOT / "data" / "full_random_data.fasta")
-    negatives = [(a, b) for a, b in zip(neg_names, neg_seqs) if "|non_promoter|" in a][:n]
-    return names + [a for a, _ in negatives], seqs + [b for _, b in negatives]
+    negatives = [s for name, s in zip(neg_names, neg_seqs) if "|non_promoter|" in name]
+    seqs = promoters[:n] + negatives[:n]
+    labels = ["promoter"] * n + ["non_promoter"] * n
+    if include_invalid:
+        base = promoters[0]
+        broken = {
+            "too_short": base[:60],
+            "too_long": base + promoters[1][:20],
+            "has_N": base[:40] + "N" + base[41:],
+        }
+        seqs += list(broken.values())
+        labels += list(broken)
+    return [f"seq{i:02d}|{label}" for i, label in enumerate(labels, 1)], seqs
 
 
 def uploaded_files(value):
@@ -275,6 +289,8 @@ def uploaded_files(value):
 
 # ==================== Notebook presentation ====================
 
+_MONOSPACE = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+
 _CALL_COLOURS = {
     "promoter": "rgba(42, 127, 98, 0.30)",
     "non_promoter": "rgba(128, 128, 128, 0.18)",
@@ -285,35 +301,43 @@ _CALL_COLOURS = {
 def summary_html(stats):
     """Row of summary cards (theme-neutral colours, works in Colab light and dark)."""
 
-    def card(label, value, sub=""):
+    def card(label, value, sub="", tint="rgba(128, 128, 128, 0.08)"):
         sub_html = f'<div style="font-size:0.8em;opacity:0.65">{sub}</div>' if sub else ""
         return (
-            '<div style="flex:1 1 130px;padding:10px 16px;border-radius:8px;'
-            'border:1px solid rgba(128,128,128,0.35);background:rgba(128,128,128,0.08)">'
+            f'<div style="flex:1 1 130px;padding:10px 16px;border-radius:8px;'
+            f'border:1px solid rgba(128,128,128,0.35);background:{tint}">'
             f'<div style="font-size:0.8em;opacity:0.7">{label}</div>'
             f'<div style="font-size:1.6em;font-weight:600">{value}</div>{sub_html}</div>'
         )
 
     n_valid = stats["n_valid"]
-    cards = [
-        card("Sequences in", stats["n_input"]),
-        card("Predicted", n_valid),
-        card("Skipped", stats["n_skipped"]),
-        card(
-            "Speed",
-            f"{stats['seq_per_sec']:.0f} seq/s",
-            f"{html.escape(str(stats['device']))} \u00b7 {stats['seconds']:.1f} s",
-        ),
-    ]
+
+    def share(k):
+        return f"{(k / n_valid if n_valid else 0):.1%} of predicted"
+
+    green, amber = "rgba(42, 127, 98, 0.15)", "rgba(214, 158, 46, 0.18)"
+    cards = [card("Predicted", n_valid, f"of {stats['n_input']} input")]
+    if stats["n_skipped"]:
+        cards.append(card("Skipped", stats["n_skipped"], "see table below", amber))
+    comparing = len(stats["promoter_counts"]) > 1
     for model, k in stats["promoter_counts"].items():
-        frac = k / n_valid if n_valid else 0
-        cards.append(card(f"Promoter \u00b7 {html.escape(model)}", f"{frac:.1%}", f"{k} of {n_valid}"))
+        tag = f" \u00b7 {html.escape(model)}" if comparing else ""
+        cards.append(card(f"Promoters{tag}", k, share(k), green))
+        cards.append(card(f"Non-promoters{tag}", n_valid - k, share(n_valid - k)))
+    cards.append(card(
+        "Time", f"{stats['seconds']:.1f} s",
+        f"{html.escape(str(stats['device']))} \u00b7 {stats['seq_per_sec']:.0f} seq/s",
+    ))
     return '<div style="display:flex;flex-wrap:wrap;gap:10px;margin:8px 0">' + "".join(cards) + "</div>"
 
 
 def style_results(df):
-    """Result table styled for display: coloured calls, confidence bars, escaped text."""
+    """Table styled for display: monospace sequences, coloured calls, confidence bars, escaped text."""
     styler = df.style.format(escape="html").hide(axis="index")
+    if "sequence" in df.columns:  # equal-width letters so equal-length sequences line up
+        styler = styler.set_properties(
+            subset=["sequence"], **{"font-family": _MONOSPACE, "white-space": "nowrap"}
+        )
     call_cols = [c for c in df.columns if c in ("prediction", "consensus") or c.startswith("pred_")]
     if call_cols:
         styler = styler.apply(
