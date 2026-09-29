@@ -160,3 +160,7 @@ cython_debug/
 #.idea/
 
 outputs/
+
+# Local dev only (not published)
+tests/
+tools/
