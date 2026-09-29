@@ -24,6 +24,8 @@ from srcs.model.siamprom import SiamProm
 ROOT = Path(__file__).resolve().parent.parent
 WEIGHTS_DIR = ROOT / "weights"
 EXPECTED_LEN = 81
+RESULTS_CSV = "outputs/siamprom_results.csv"  # relative to the repo root (git-ignored)
+SKIPPED_CSV = "outputs/siamprom_skipped.csv"
 VALID_BASES = set("ATCG")
 
 
