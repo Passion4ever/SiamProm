@@ -78,6 +78,5 @@ For more detailed instructions on parameter management and configuration usage, 
   pages   = {bbae193},
   year    = {2024},
   doi     = {10.1093/bib/bbae193},
-  keywords = {published},
 }
 ```
