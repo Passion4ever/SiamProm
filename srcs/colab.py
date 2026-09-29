@@ -249,7 +249,7 @@ def run_prediction(names, seqs, models, device, batch_size=1024, thresholds=None
     }
 
 
-# ==================== Examples and self-check ====================
+# ==================== Examples and uploads ====================
 
 def load_example(n=10):
     """First n promoters plus first n randomly generated non-promoters shipped in data/."""
@@ -260,19 +260,17 @@ def load_example(n=10):
     return names + [a for a, _ in negatives], seqs + [b for _, b in negatives]
 
 
-def self_check(entry, device):
-    """Load `entry`, predict the examples, and compare with predict.py's own code path."""
-    import predict
+def uploaded_files(value):
+    """Normalise an ipywidgets FileUpload value into [(name, bytes)].
 
-    path = resolve_checkpoint(entry)
-    names, seqs = load_example(10)
-    probs = predict_probs(load_model_safe(path, device), seqs, device, batch_size=8)
-    assert len(probs) == len(seqs) and np.isfinite(probs).all(), "non-finite probabilities"
-    assert ((probs >= 0) & (probs <= 1)).all(), "probabilities outside [0, 1]"
-    legacy = predict.predict(predict.load_model(path, device), seqs, device)
-    np.testing.assert_allclose(probs, legacy["probabilities"], atol=1e-4)
-    print(f"Self-check OK ({entry['name']}, {device}): matches predict.py on {len(seqs)} example sequences")
-    return True
+    ipywidgets 7 gives {name: {"metadata": ..., "content": bytes}};
+    ipywidgets 8 gives a tuple of {"name": ..., "content": memoryview, ...}.
+    """
+    if isinstance(value, dict):
+        items = [(name, info["content"]) for name, info in value.items()]
+    else:
+        items = [(info["name"], info["content"]) for info in value]
+    return [(name, bytes(content)) for name, content in items]
 
 
 # ==================== Notebook presentation ====================
