@@ -6,6 +6,7 @@ encoding and FASTA reading so results match the command-line tool.
 """
 
 import hashlib
+import html
 import json
 import time
 import urllib.request
@@ -273,3 +274,58 @@ def self_check(entry, device):
     np.testing.assert_allclose(probs, legacy["probabilities"], atol=1e-4)
     print(f"Self-check OK ({entry['name']}, {device}): matches predict.py on {len(seqs)} example sequences")
     return True
+
+
+# ==================== Notebook presentation ====================
+
+_CALL_COLOURS = {
+    "promoter": "rgba(42, 127, 98, 0.30)",
+    "non_promoter": "rgba(128, 128, 128, 0.18)",
+    "disagree": "rgba(214, 158, 46, 0.30)",
+}
+
+
+def summary_html(stats):
+    """Row of summary cards (theme-neutral colours, works in Colab light and dark)."""
+
+    def card(label, value, sub=""):
+        sub_html = f'<div style="font-size:0.8em;opacity:0.65">{sub}</div>' if sub else ""
+        return (
+            '<div style="flex:1 1 130px;padding:10px 16px;border-radius:8px;'
+            'border:1px solid rgba(128,128,128,0.35);background:rgba(128,128,128,0.08)">'
+            f'<div style="font-size:0.8em;opacity:0.7">{label}</div>'
+            f'<div style="font-size:1.6em;font-weight:600">{value}</div>{sub_html}</div>'
+        )
+
+    n_valid = stats["n_valid"]
+    cards = [
+        card("Sequences in", stats["n_input"]),
+        card("Predicted", n_valid),
+        card("Skipped", stats["n_skipped"]),
+        card(
+            "Speed",
+            f"{stats['seq_per_sec']:.0f} seq/s",
+            f"{html.escape(str(stats['device']))} \u00b7 {stats['seconds']:.1f} s",
+        ),
+    ]
+    for model, k in stats["promoter_counts"].items():
+        frac = k / n_valid if n_valid else 0
+        cards.append(card(f"Promoter \u00b7 {html.escape(model)}", f"{frac:.1%}", f"{k} of {n_valid}"))
+    return '<div style="display:flex;flex-wrap:wrap;gap:10px;margin:8px 0">' + "".join(cards) + "</div>"
+
+
+def style_results(df):
+    """Result table styled for display: coloured calls, confidence bars, escaped text."""
+    styler = df.style.format(escape="html").hide(axis="index")
+    call_cols = [c for c in df.columns if c in ("prediction", "consensus") or c.startswith("pred_")]
+    if call_cols:
+        styler = styler.apply(
+            lambda col: [f"background-color: {_CALL_COLOURS.get(v, '')}" for v in col],
+            subset=call_cols,
+        )
+    prob_cols = [c for c in df.columns if c == "confidence" or c.startswith("prob_")]
+    for c in prob_cols:
+        styler = styler.bar(subset=[c], vmin=0, vmax=1, color="rgba(42, 127, 98, 0.35)")
+    if prob_cols:
+        styler = styler.format({c: "{:.3f}" for c in prob_cols}, escape="html")
+    return styler
