@@ -299,41 +299,37 @@ _CALL_COLOURS = {
 
 
 def summary_html(stats):
-    """Row of summary cards (theme-neutral colours, works in Colab light and dark)."""
+    """Row of summary cards, a label and one number each (works in Colab light and dark)."""
 
-    def card(label, value, sub="", tint="rgba(128, 128, 128, 0.08)"):
-        sub_html = f'<div style="font-size:0.8em;opacity:0.65">{sub}</div>' if sub else ""
+    def card(label, value, tint="rgba(128, 128, 128, 0.08)"):
         return (
             f'<div style="flex:1 1 130px;padding:10px 16px;border-radius:8px;'
             f'border:1px solid rgba(128,128,128,0.35);background:{tint}">'
             f'<div style="font-size:0.8em;opacity:0.7">{label}</div>'
-            f'<div style="font-size:1.6em;font-weight:600">{value}</div>{sub_html}</div>'
+            f'<div style="font-size:1.6em;font-weight:600">{value}</div></div>'
         )
 
     n_valid = stats["n_valid"]
-
-    def share(k):
-        return f"{(k / n_valid if n_valid else 0):.1%} of predicted"
-
     green, amber = "rgba(42, 127, 98, 0.15)", "rgba(214, 158, 46, 0.18)"
-    cards = [card("Predicted", n_valid, f"of {stats['n_input']} input")]
+    cards = [card("Predicted", f"{n_valid}/{stats['n_input']}")]
     if stats["n_skipped"]:
-        cards.append(card("Skipped", stats["n_skipped"], "see table below", amber))
+        cards.append(card("Skipped", stats["n_skipped"], amber))
     comparing = len(stats["promoter_counts"]) > 1
     for model, k in stats["promoter_counts"].items():
         tag = f" \u00b7 {html.escape(model)}" if comparing else ""
-        cards.append(card(f"Promoters{tag}", k, share(k), green))
-        cards.append(card(f"Non-promoters{tag}", n_valid - k, share(n_valid - k)))
-    cards.append(card(
-        "Time", f"{stats['seconds']:.1f} s",
-        f"{html.escape(str(stats['device']))} \u00b7 {stats['seq_per_sec']:.0f} seq/s",
-    ))
+        cards.append(card(f"Promoters{tag}", k, green))
+        cards.append(card(f"Non-promoters{tag}", n_valid - k))
+    cards.append(card("Time", f"{stats['seconds']:.1f} s"))
     return '<div style="display:flex;flex-wrap:wrap;gap:10px;margin:8px 0">' + "".join(cards) + "</div>"
 
 
 def style_results(df):
     """Table styled for display: monospace sequences, coloured calls, confidence bars, escaped text."""
     styler = df.style.format(escape="html").hide(axis="index")
+    styler = styler.set_table_styles([{"selector": "th", "props": [("text-align", "left")]}])
+    text_cols = [c for c in ("name", "sequence", "reason") if c in df.columns]
+    if text_cols:
+        styler = styler.set_properties(subset=text_cols, **{"text-align": "left"})
     if "sequence" in df.columns:  # equal-width letters so equal-length sequences line up
         styler = styler.set_properties(
             subset=["sequence"], **{"font-family": _MONOSPACE, "white-space": "nowrap"}
