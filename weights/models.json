@@ -1,0 +1,8 @@
+[
+  {
+    "name": "phantom",
+    "file": "siamprom_phantom.pth",
+    "description": "phantom negative sampling (paper default)",
+    "threshold": 0.5
+  }
+]
