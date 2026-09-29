@@ -43,7 +43,7 @@ def encode_sequences(sequences, k=3, max_len=81):
             kmer_list.append(integer)
             valid_indices.append(i)
         except KeyError:
-            # 找到第一个非法 k-mer 的位置
+            # Report which characters made the k-mer lookup fail
             bad_chars = set(seq) - set("ATCG")
             warnings.warn(
                 f"Skipped sequence {i}: contains non-ATCG characters {bad_chars}"
@@ -85,7 +85,7 @@ def read_fasta(fasta_path):
 def load_model(checkpoint_path, device='cpu'):
     """Load a SiamProm model from checkpoint.
 
-    Checkpoint 格式: {'arch': {...模型架构参数}, 'model_state_dict': state_dict}
+    Checkpoint format: {'arch': {...model architecture args}, 'model_state_dict': state_dict}
     """
     ckpt = torch.load(checkpoint_path, map_location=device, weights_only=False)
 
